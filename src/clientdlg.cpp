@@ -848,7 +848,34 @@ void CClientDlg::OnCLVersionAndOSReceived ( CHostAddress InetAddr, COSUtil::EOpS
 
 void CClientDlg::OnChatTextReceived ( QString strChatText )
 {
-    if ( pSettings->bEnableAudioAlerts )
+    // extract name between <b> and </b>
+    int  iStart         = strChatText.indexOf ( "<b>" );
+    int  iEnd           = strChatText.indexOf ( "</b>" );
+    bool bSenderIsMuted = false;
+
+    if ( iStart != -1 && iEnd != -1 && iEnd > iStart )
+    {
+        QString strSenderName = strChatText.mid ( iStart + 3, iEnd - iStart - 3 );
+
+        // Check if sender name is in muted names list
+        for ( int i = 0; i < vecStrMutedUserNames.Size(); i++ )
+        {
+            if ( vecStrMutedUserNames[i] == strSenderName )
+            {
+                bSenderIsMuted = true;
+                break;
+            }
+        }
+
+        if ( bSenderIsMuted )
+        {
+            // replace message text with "..."
+            // format: (<time>) <b>UserName</b> ...
+            strChatText = strChatText.left ( iEnd + 4 ) + " ...";
+        }
+    }
+
+    if ( pSettings->bEnableAudioAlerts && !bSenderIsMuted )
     {
         QSoundEffect* sf = new QSoundEffect();
         sf->setSource ( QUrl::fromLocalFile ( ":sounds/res/sounds/new_message.wav" ) );
@@ -863,6 +890,49 @@ void CClientDlg::OnChatTextReceived ( QString strChatText )
     ShowChatWindow ( ( strChatText.indexOf ( WELCOME_MESSAGE_PREFIX ) == 0 ) );
 
     UpdateDisplay();
+}
+
+void CClientDlg::OnMuteStateHasChangedReceived ( int iChanID, bool bIsMuted )
+{
+    // update mixer board
+    MainMixerBoard->SetRemoteFaderIsMute ( iChanID, bIsMuted );
+
+    // get user name for the channel
+    const QString strName = MainMixerBoard->GetChannelName ( iChanID );
+
+    if ( !strName.isEmpty() )
+    {
+        if ( bIsMuted )
+        {
+            // add to muted list if not already there
+            bool bFound = false;
+            for ( int i = 0; i < vecStrMutedUserNames.Size(); i++ )
+            {
+                if ( vecStrMutedUserNames[i] == strName )
+                {
+                    bFound = true;
+                    break;
+                }
+            }
+
+            if ( !bFound )
+            {
+                vecStrMutedUserNames.Add ( strName );
+            }
+        }
+        else
+        {
+            // remove from muted list
+            for ( int i = 0; i < vecStrMutedUserNames.Size(); i++ )
+            {
+                if ( vecStrMutedUserNames[i] == strName )
+                {
+                    vecStrMutedUserNames.erase ( vecStrMutedUserNames.begin() + i );
+                    break;
+                }
+            }
+        }
+    }
 }
 
 void CClientDlg::OnLicenceRequired ( ELicenceType eLicenceType )
@@ -1296,11 +1366,11 @@ void CClientDlg::Disconnect()
     TimerDetectFeedback.stop();
     bDetectFeedback = false;
 
-    //### TODO: BEGIN ###//
-    // is this still required???
-    // immediately update status bar
+    // ### TODO: BEGIN ###//
+    //  is this still required???
+    //  immediately update status bar
     OnTimerStatus();
-    //### TODO: END ###//
+    // ### TODO: END ###//
 
     // reset LEDs
     ledBuffers->Reset();

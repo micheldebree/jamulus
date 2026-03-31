@@ -1,0 +1,60 @@
+# yaml-language-server: $schema=https://taskfile.dev/schema.json
+
+version: '3'
+
+vars:
+  GREETING: Hello, world!
+
+tasks:
+
+  app:
+    desc: Create release app
+    deps:
+      - xcodeproj
+    cmds:
+      - xcodebuild build
+
+  app.x86:
+    desc: Create release app (x86 architecture)
+    deps:
+      - xcodeproj.x86
+    cmds:
+      - xcodebuild build
+
+  xcodeproj:
+    desc: Create Xcode project
+    deps:
+      - qmake
+    generates:
+      - Jamulus.xcodeproj
+    cmds:
+      - qmake -spec macx-xcode Jamulus.pro
+
+  xcodeproj.x86:
+    desc: Create Xcode project (x86 architecture)
+    deps:
+      - qmake
+    generates:
+      - Jamulus.xcodeproj
+    cmds:
+      - qmake -spec macx-xcode QMAKE_APPLE_DEVICE_ARCHS=x86_64 Jamulus.pro
+
+  clean:
+    desc: Clean all artifacts
+    cmds:
+      - make clean
+      - rm ./.qmake.stash
+      - rm -rf ./Jamulus.xcodeproj
+      - rm -rf ./debug
+      - rm -rf ./release/
+      - rm -rf ./storedeploy
+      - rm -rf .qm
+      - rm -rf .xcode
+
+  qmake:
+    desc: QT 5 dependencies with qmake
+    status:
+      - which qmake
+    cmds:
+      - brew install Qt@5
+      - brew link Qt@5 --force

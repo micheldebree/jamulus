@@ -1794,6 +1794,15 @@ void CAudioMixerBoard::SetRemoteFaderIsMute ( const int iChannelIdx, const bool 
     }
 }
 
+QString CAudioMixerBoard::GetChannelName ( const int iChannelIdx ) const
+{
+    if ( ( iChannelIdx >= 0 ) && ( iChannelIdx < MAX_NUM_CHANNELS ) )
+    {
+        return vecpChanFader[static_cast<size_t> ( iChannelIdx )]->GetReceivedName();
+    }
+    return "";
+}
+
 void CAudioMixerBoard::UpdateSoloStates()
 {
     // first check if any channel has a solo state active
