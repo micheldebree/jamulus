@@ -200,6 +200,7 @@ public:
     void    SetDisplayPans ( const bool eNDP );
     void    SetPanIsSupported();
     void    SetRemoteFaderIsMute ( const int iChannelIdx, const bool bIsMute );
+    QString GetChannelName ( const int iChannelIdx ) const;
     void    SetMyChannelID ( const int iChannelIdx ) { iMyChannelID = iChannelIdx; }
     int     GetMyChannelID() const { return iMyChannelID; }
 

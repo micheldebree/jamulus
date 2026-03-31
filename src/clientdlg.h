@@ -104,19 +104,20 @@ protected:
     CClient*         pClient;
     CClientSettings* pSettings;
 
-    int            iClients;
-    bool           bConnected;
-    bool           bConnectDlgWasShown;
-    bool           bDetectFeedback;
-    bool           bEnableIPv6;
-    ERecorderState eLastRecorderState;
-    EGUIDesign     eLastDesign;
-    QTimer         TimerSigMet;
-    QTimer         TimerBuffersLED;
-    QTimer         TimerStatus;
-    QTimer         TimerPing;
-    QTimer         TimerCheckAudioDeviceOk;
-    QTimer         TimerDetectFeedback;
+    int              iClients;
+    bool             bConnected;
+    bool             bConnectDlgWasShown;
+    bool             bDetectFeedback;
+    bool             bEnableIPv6;
+    CVector<QString> vecStrMutedUserNames;
+    ERecorderState   eLastRecorderState;
+    EGUIDesign       eLastDesign;
+    QTimer           TimerSigMet;
+    QTimer           TimerBuffersLED;
+    QTimer           TimerStatus;
+    QTimer           TimerPing;
+    QTimer           TimerCheckAudioDeviceOk;
+    QTimer           TimerDetectFeedback;
 
     virtual void closeEvent ( QCloseEvent* Event );
     virtual void dragEnterEvent ( QDragEnterEvent* Event ) { ManageDragNDrop ( Event, true ); }
@@ -227,7 +228,7 @@ public slots:
 
     void OnClientIDReceived ( int iChanID ) { MainMixerBoard->SetMyChannelID ( iChanID ); }
 
-    void OnMuteStateHasChangedReceived ( int iChanID, bool bIsMuted ) { MainMixerBoard->SetRemoteFaderIsMute ( iChanID, bIsMuted ); }
+    void OnMuteStateHasChangedReceived ( int iChanID, bool bIsMuted );
 
     void OnCLChannelLevelListReceived ( CHostAddress /* unused */, CVector<uint16_t> vecLevelList )
     {
